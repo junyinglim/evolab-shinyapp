@@ -1,7 +1,24 @@
 library(shiny)
 library(leaflet)
 
-vars <- c("Tetragnatha acuta", "Tetragnatha brevignatha")
+vars <- c("Show all",
+          "Tetragnatha acuta", 
+          "Tetragnatha anuenue",
+          "Tetragnatha brevignatha",
+          "Tetragnatha eurychasma",
+          "Tetragnatha hawaiensis",
+          "Tetragnatha kamakou",
+          "Tetragnatha kauaiensis",
+          "Tetragnatha lena",
+          "Tetragnatha macracantha",
+          "Tetragnatha paludicola",
+          "Tetragnatha perkinsi",
+          "Tetragnatha pilosa",
+          "Tetragnatha polychromata",
+          "Tetragnatha quasimodo",
+          "Tetragnatha restricta",
+          "Tetragnatha stelarobusta",
+          "Tetragnatha waikamoi")
 shinyUI(navbarPage("Evolab-Berkeley", id="nav",
                    
                    tabPanel("Interactive map",
@@ -19,13 +36,15 @@ shinyUI(navbarPage("Evolab-Berkeley", id="nav",
                                               draggable = TRUE, top = 60, left = "auto", right = 20, bottom = "auto",
                                               width = 330, height = "auto",
                                               
-                                              h2("Hawaii"),
+                                              h2("Spiders of Hawai'i"),
                                               
-                                              selectInput("species", "Species", vars))
+                                              selectInput(inputId = "species",
+                                                          label = "Species",
+                                                          choices = vars))
                                 ),
                                 
                                 tags$div(id="cite",
-                                         'Data from Essig Museum'
+                                         'Data from Essig Museum of Entomology database'
                                 )
                             )
                    )
