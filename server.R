@@ -9,9 +9,9 @@ occdata <- readRDS("totalOcc.rds")
 occdata <- occdata[occdata$genus == "Tetragnatha" & occdata$stateProvince == "Hawaii",]
 occdata$Binomial <- paste(occdata$genus, occdata$specificEpithet)
 
-colPara <- data.frame(Binomial = unique(occdata$Binomial), Col = viridis(length(unique(occdata$Binomial))))
-occdata <- merge(occdata, colPara, by= "Binomial")
-occdata$Col <- as.vector(occdata$Col)
+colPara <- colorFactor(palette = viridis(18), occdata$Binomial)
+#occdata <- merge(occdata, colPara, by= "Binomial")
+
 
 ##todo## add reserve polygon
 ##todo## add raster maps
@@ -35,7 +35,7 @@ shinyServer(function(input, output, session) {
   output$map <- renderLeaflet({
     leaflet(data = occdata) %>%
       addTiles() %>%
-#      addCircles(lng = ~decimalLongitude, lat = ~decimalLatitude, radius = 100, color = ~Col, fillOpacity = 0.2) %>%
+      clearShapes() %>%
       setView(lng = -157, lat = 20.5, zoom = 8)
   })
   
@@ -43,7 +43,7 @@ shinyServer(function(input, output, session) {
     observe({
       leafletProxy("map", data = targetSpecies()) %>%
         clearShapes() %>%
-        addCircles(lng = ~decimalLongitude, lat = ~decimalLatitude, fillOpacity = 0.4, fillColor = ~Col)
+        addCircleMarkers(lng = ~decimalLongitude, lat = ~decimalLatitude, color = ~colPara(Binomial), fillOpacity = 1, stroke = FALSE)
     })
   
 })
