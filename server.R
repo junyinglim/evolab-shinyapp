@@ -1,9 +1,6 @@
 library(shiny)
 library(leaflet)
-library(RColorBrewer)
-library(scales)
-library(lattice)
-library(dplyr)
+
 
 # Leaflet bindings are a bit slow; for now we'll just sample to compensate
 #setwd("~/Dropbox/evolab/evolab-shinyapp/")
