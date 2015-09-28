@@ -4,10 +4,11 @@ library(raster)
 library(rgdal)
 
 ## Import data
-#setwd("~/Dropbox/evolab/evolab-shinyapp/")
 occdata <- readRDS(file.path("data", "totalOcc.rds"))
 occdata <- occdata[occdata$genus == "Tetragnatha" & occdata$stateProvince == "Hawaii",]
+occdata <- occdata[! is.na(occdata$decimalLongitude) | ! is.na(occdata$decimalLatitude),] # OMG THIS FIXES THE BUG; CLEAR ALL NAs
 occdata$Binomial <- paste(occdata$genus, occdata$specificEpithet)
+
 
 ## Import maps
 crs <- CRS("+init=epsg:4326")
@@ -25,7 +26,6 @@ tempmap <- raster(x = file.path("maps", "tair_ann.txt"), crs = crs)
 shinyServer(function(input, output, session) {
 
   ## REACTIVES
-
   filteredData <- reactive({
     if(input$species %in% "Show all"){
       occdata
@@ -45,9 +45,7 @@ shinyServer(function(input, output, session) {
   
   ## BASE MAP
   output$map <- renderLeaflet({
-    # Use leaflet() here, and only include aspects of the map that
-    # won't need to change dynamically (at least, not unless the
-    # entire map is being torn down and recreated).
+    # Use leaflet() here, and only include aspects of the map that won't need to change dynamically
     leaflet(occdata) %>% addTiles() %>%
       setView(lng = -157, lat = 20.5, zoom = 8)
       #addRasterImage(rainfallmap, opacity = 0.7, colors = "YlGnBu") 
@@ -58,18 +56,18 @@ shinyServer(function(input, output, session) {
   # To allow user to subset species
   observe({
     leafletProxy("map", data = filteredData()) %>%
-      clearShapes() %>%
-      addCircles(lng = ~decimalLongitude,
-                 lat = ~decimalLatitude,
-                 layerId=~catalogNumber, fillOpacity = 0.5,color = "red")
+        clearShapes() %>%
+        addCircles(lng = ~decimalLongitude,
+                   lat = ~decimalLatitude,
+                   layerId=~catalogNumber, fillOpacity = 0.5, color = "red")
   })
   
   ## ENVIRONMENTAL MAPS (https://rstudio.github.io/leaflet/raster.html)
   observe({
     if(input$envmap %in% "None"){
       leafletProxy("map") %>%
-        clearImages() %>%
-        removeShape("legend")
+        clearControls() %>% # remove existing legend
+        clearImages() # remove existing raster
     } else {
       pal <- colorNumeric(
         palette = "YlGnBu",
@@ -77,14 +75,16 @@ shinyServer(function(input, output, session) {
         na.color = "transparent"
       )
       
+      labels <- c("rainfall" = "Mean Annual Rainfall (mm)", "temperature" = "Mean Annual Temperature (C)")
+
       leafletProxy("map") %>%
-        clearImages() %>%
-        removeShape("legend") %>% 
+        clearControls() %>% # remove existing legend
+        clearImages() %>% # remove existing raster
         addRasterImage(envMap(), opacity =  0.5, colors = pal, layerId = "raster") %>%
         addLegend(position = "bottomleft",
                   pal = pal,
                   values = values(envMap()),
-                  title = input$envmap,
+                  title = as.character(labels[input$envmap]),
                   layerId = "legend")
     }
   })
