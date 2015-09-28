@@ -1,9 +1,10 @@
 library(shiny)
 library(leaflet)
 library(raster)
+library(rgdal)
 
 ## Import data
-setwd("~/Dropbox/evolab/evolab-shinyapp/")
+#setwd("~/Dropbox/evolab/evolab-shinyapp/")
 occdata <- readRDS(file.path("data", "totalOcc.rds"))
 occdata <- occdata[occdata$genus == "Tetragnatha" & occdata$stateProvince == "Hawaii",]
 occdata$Binomial <- paste(occdata$genus, occdata$specificEpithet)
@@ -58,15 +59,33 @@ shinyServer(function(input, output, session) {
   observe({
     leafletProxy("map", data = filteredData()) %>%
       clearShapes() %>%
-      addCircles(lng = ~decimalLongitude, lat = ~decimalLatitude, layerId=~catalogNumber, fillOpacity = 0.5,color = "red")
+      addCircles(lng = ~decimalLongitude,
+                 lat = ~decimalLatitude,
+                 layerId=~catalogNumber, fillOpacity = 0.5,color = "red")
   })
   
-  ## ENVIRONMENTAL MAPS
+  ## ENVIRONMENTAL MAPS (https://rstudio.github.io/leaflet/raster.html)
   observe({
-    if(! input$envmap %in% "None"){
+    if(input$envmap %in% "None"){
       leafletProxy("map") %>%
         clearImages() %>%
-        addRasterImage(envMap(), opacity =  0.5, colors = "YlGnBu")
+        removeShape("legend")
+    } else {
+      pal <- colorNumeric(
+        palette = "YlGnBu",
+        domain = values(envMap()),
+        na.color = "transparent"
+      )
+      
+      leafletProxy("map") %>%
+        clearImages() %>%
+        removeShape("legend") %>% 
+        addRasterImage(envMap(), opacity =  0.5, colors = pal, layerId = "raster") %>%
+        addLegend(position = "bottomleft",
+                  pal = pal,
+                  values = values(envMap()),
+                  title = input$envmap,
+                  layerId = "legend")
     }
   })
   
