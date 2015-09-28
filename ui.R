@@ -1,8 +1,7 @@
 library(shiny)
 library(leaflet)
 
-vars <- c("Show all",
-          "Tetragnatha acuta", 
+vars <- c("Tetragnatha acuta", 
           "Tetragnatha anuenue",
           "Tetragnatha brevignatha",
           "Tetragnatha eurychasma",
@@ -39,7 +38,7 @@ shinyUI(navbarPage("Evolab-Berkeley", id="nav",
                                               h2("Spiders of Hawai'i"),
                                               
                                               selectInput(inputId = "species",
-                                                          label = "Species",
+                                                          label = "Choose a species to display!",
                                                           choices = vars))
                                 ),
                                 
