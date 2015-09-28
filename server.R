@@ -1,34 +1,59 @@
 library(shiny)
 library(leaflet)
+library(raster)
 
-#setwd("~/Dropbox/evolab/evolab-shinyapp/")
-occdata <- readRDS("totalOcc.rds")
+## Import data
+setwd("~/Dropbox/evolab/evolab-shinyapp/")
+occdata <- readRDS(file.path("data", "totalOcc.rds"))
 occdata <- occdata[occdata$genus == "Tetragnatha" & occdata$stateProvince == "Hawaii",]
 occdata$Binomial <- paste(occdata$genus, occdata$specificEpithet)
 
+## Import maps
+crs <- CRS("+init=epsg:4326")
+rainfallmap <- raster(x = file.path("maps", "rfgrid_mm_state_ann.txt"), crs = crs)
+tempmap <- raster(x = file.path("maps", "tair_ann.txt"), crs = crs)
+
 ##todo## add reserve polygon
-##todo## add raster maps?
-##todo## CRS does not seem right; unless the points were incorrectly georeferenced
+##todo## add legend
+##todo## CRS does not seem right; unless the points were incorrectly georeferenced?
+##todo## option to choose colour?
+
 ## USEFUL FUNCTION FOR TROUBLESHOOTING ##
 # shinyapps::showLogs()
 
 shinyServer(function(input, output, session) {
 
-  ## Interactive Map ###########################################
-  
-  filteredData <- reactive({
-    occdata[occdata$Binomial %in% input$species, ]
-  })
+  ## REACTIVES
 
+  filteredData <- reactive({
+    if(input$species %in% "Show all"){
+      occdata
+    } else {
+      occdata[occdata$Binomial %in% input$species, ]  
+    }
+  })
+  
+  envMap <- reactive({
+    if(input$envmap %in% "rainfall"){
+      rainfallmap
+    }
+    else if(input$envmap %in% "temperature"){
+      tempmap
+    }
+  })
+  
+  ## BASE MAP
   output$map <- renderLeaflet({
     # Use leaflet() here, and only include aspects of the map that
     # won't need to change dynamically (at least, not unless the
     # entire map is being torn down and recreated).
     leaflet(occdata) %>% addTiles() %>%
       setView(lng = -157, lat = 20.5, zoom = 8)
+      #addRasterImage(rainfallmap, opacity = 0.7, colors = "YlGnBu") 
       #setMaxBounds(~min(decimalLongitude), ~min(decimalLatitude), ~max(decimalLongitude), ~max(decimalLatitude))
   })  
-
+  
+  ## SPECIES
   # To allow user to subset species
   observe({
     leafletProxy("map", data = filteredData()) %>%
@@ -36,6 +61,16 @@ shinyServer(function(input, output, session) {
       addCircles(lng = ~decimalLongitude, lat = ~decimalLatitude, layerId=~catalogNumber, fillOpacity = 0.5,color = "red")
   })
   
+  ## ENVIRONMENTAL MAPS
+  observe({
+    if(! input$envmap %in% "None"){
+      leafletProxy("map") %>%
+        clearImages() %>%
+        addRasterImage(envMap(), opacity =  0.5, colors = "YlGnBu")
+    }
+  })
+  
+  ## POPUPS
   # Define popup
   showCollectionInfo <- function(event){
     selectedCollection <- occdata[occdata$catalogNumber == event$id,]

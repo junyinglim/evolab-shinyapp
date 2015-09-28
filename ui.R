@@ -1,7 +1,8 @@
 library(shiny)
 library(leaflet)
 
-vars <- c("Tetragnatha acuta", 
+speciesvars <- c("Show all",
+          "Tetragnatha acuta", 
           "Tetragnatha anuenue",
           "Tetragnatha brevignatha",
           "Tetragnatha eurychasma",
@@ -18,6 +19,11 @@ vars <- c("Tetragnatha acuta",
           "Tetragnatha restricta",
           "Tetragnatha stelarobusta",
           "Tetragnatha waikamoi")
+
+mapvars <- c("Show all" = "None",
+             "Mean Annual Rainfall (mm)" = "rainfall",
+             "Mean Air Temperature (C)" = "temperature")
+
 shinyUI(navbarPage("Evolab-Berkeley", id="nav",
                    
                    tabPanel("Interactive map",
@@ -38,8 +44,12 @@ shinyUI(navbarPage("Evolab-Berkeley", id="nav",
                                               h2("Spiders of Hawai'i"),
                                               
                                               selectInput(inputId = "species",
-                                                          label = "Choose a species to display!",
-                                                          choices = vars))
+                                                          label = "Choose a species to display",
+                                                          choices = speciesvars),
+                                              selectInput(inputId = "envmap",
+                                                          label = "Choose an environmental map to overlay",
+                                                          choices = mapvars,
+                                                          selected = "None"))
                                 ),
                                 
                                 tags$div(id="cite",
