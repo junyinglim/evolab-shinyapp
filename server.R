@@ -12,8 +12,8 @@ occdata$Binomial <- paste(occdata$genus, occdata$specificEpithet)
 
 ## Import maps
 crs <- CRS("+init=epsg:4326")
-rainfallmap <- raster(x = file.path("maps", "rfgrid_mm_state_ann.txt"), crs = crs)
-tempmap <- raster(x = file.path("maps", "tair_ann.txt"), crs = crs)
+rainfallmap_lowres <- readRDS(file.path("maps", "rainfallmap_lowres.rds"))
+tempmap_lowres <- readRDS(file.path("maps", "tempmap_lowres.rds"))
 
 ##todo## add reserve polygon
 ##todo## add legend
@@ -36,10 +36,10 @@ shinyServer(function(input, output, session) {
   
   envMap <- reactive({
     if(input$envmap %in% "rainfall"){
-      rainfallmap
+      rainfallmap_lowres
     }
     else if(input$envmap %in% "temperature"){
-      tempmap
+      tempmap_lowres
     }
   })
   
