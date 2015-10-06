@@ -49,11 +49,15 @@ shinyUI(navbarPage("Evolab-Berkeley", id="nav",
                                               selectInput(inputId = "envmap",
                                                           label = "Choose an environmental map to overlay",
                                                           choices = mapvars,
-                                                          selected = "None"))
+                                                          selected = "None"),
+                                              
+                                              plotOutput("hist", height = 200)
+                                              )
+                                
                                 ),
                                 
                                 tags$div(id="cite",
-                                         'Data from Essig Museum of Entomology database'
+                                         'Data sourced from Essig Museum of Entomology database'
                                 )
                             )
                    )

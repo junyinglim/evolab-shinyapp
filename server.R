@@ -4,11 +4,7 @@ library(raster)
 library(rgdal)
 
 ## Import data
-occdata <- readRDS(file.path("data", "totalOcc.rds"))
-occdata <- occdata[occdata$genus == "Tetragnatha" & occdata$stateProvince == "Hawaii",]
-occdata <- occdata[! is.na(occdata$decimalLongitude) | ! is.na(occdata$decimalLatitude),] # OMG THIS FIXES THE BUG; CLEAR ALL NAs
-occdata$Binomial <- paste(occdata$genus, occdata$specificEpithet)
-
+occdata <- readRDS(file.path("data", "occdata_env.rds"))
 
 ## Import maps
 crs <- CRS("+init=epsg:4326")
@@ -50,7 +46,9 @@ shinyServer(function(input, output, session) {
       setView(lng = -157, lat = 20.5, zoom = 8)
       #addRasterImage(rainfallmap, opacity = 0.7, colors = "YlGnBu") 
       #setMaxBounds(~min(decimalLongitude), ~min(decimalLatitude), ~max(decimalLongitude), ~max(decimalLatitude))
-  })  
+  })
+  
+  
   
   ## SPECIES
   # To allow user to subset species
@@ -60,6 +58,27 @@ shinyServer(function(input, output, session) {
         addCircles(lng = ~decimalLongitude,
                    lat = ~decimalLatitude,
                    layerId=~catalogNumber, fillOpacity = 0.5, color = "red")
+  })
+  
+  observe({
+    labels <- c("rainfall" = "Mean Annual Rainfall (mm)", "temperature" = "Mean Annual Temperature (C)")
+    collabel <- c("rainfall" = "rfgrid_mm_state_ann", "temperature" = "tair_ann")
+    
+    if(input$species == "Show all"){
+      title <- "All species"
+    } else {
+      title <- input$species
+    }
+    
+    if(input$envmap %in% "None")
+      return(NULL)
+    
+    output$hist <- renderPlot({
+      hist(filteredData()[,collabel[input$envmap]],
+      main = title,
+      xlab = labels[input$envmap])
+      })
+    
   })
   
   ## ENVIRONMENTAL MAPS (https://rstudio.github.io/leaflet/raster.html)
